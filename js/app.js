@@ -140,14 +140,14 @@
     const w = 60*(d.soc/100);
     battFill.setAttribute('width', Math.max(2, w).toFixed(1));
     battFill.setAttribute('fill', d.soc <= 20 ? 'var(--danger)' : 'var(--batt)');
-    battPct.textContent = Math.round(d.soc) + '%';
+    battPct.textContent = R.hasBattery ? Math.round(d.soc) + '%' : '—';
     wire.setAttribute('opacity', d.aer ? '1' : '0.3');
     if (d.aer){ spin = (spin + 9) % 360; bubbles.setAttribute('opacity','0.8'); }
     else { bubbles.setAttribute('opacity','0'); }
     wheel.setAttribute('transform','translate(695,126) rotate('+spin+')');
     fish.setAttribute('fill', d.do < 3 ? 'var(--danger)' : d.do < 4.5 ? 'var(--sun)' : '#F0B44A');
     $('#r-pv').textContent = nf(d.pv,2) + ' kW';
-    $('#r-soc').textContent = Math.round(d.soc) + '%';
+    $('#r-soc').textContent = R.hasBattery ? Math.round(d.soc) + '%' : 'tanpa baterai';
     $('#r-do').textContent = nf(d.do,1) + ' mg/L';
     $('#r-aer').textContent = d.aer ? 'menyala' : 'mati';
     $('#r-aer').setAttribute('fill', d.aer ? 'var(--sun)' : 'var(--ink-3)');
@@ -161,7 +161,7 @@
     $('#t-aer').textContent = nf(R.aerHours, 1);
     $('#t-do').textContent = nf(R.doMin, 2);
     $('#t-do-u').textContent = 'mg/L · pukul ' + jam(R.doMinT);
-    $('#t-soc').textContent = nf(R.socMin, 0);
+    $('#t-soc').textContent = R.socMin == null ? '—' : nf(R.socMin, 0);
     const pill = $('#t-status');
     const label = R.status === 'aman' ? 'Aman' : R.status === 'waspada' ? 'Waspada' : 'Kritis';
     pill.className = 'pill ' + (R.status === 'aman' ? 'ok' : R.status === 'waspada' ? 'warn' : 'crit');
@@ -230,9 +230,9 @@
   // ---------- skenario & tabel ----------
   const SCEN = SCENARIOS;
   let rows = [];
-  try { rows = JSON.parse(localStorage.getItem('lkm3-rows') || '[]'); } catch(e){ rows = []; }
+  try { rows = JSON.parse(localStorage.getItem('lkm3-rows-v2') || '[]'); } catch(e){ rows = []; }
 
-  function save(){ try { localStorage.setItem('lkm3-rows', JSON.stringify(rows)); } catch(e){} }
+  function save(){ try { localStorage.setItem('lkm3-rows-v2', JSON.stringify(rows)); } catch(e){} }
   function paintRows(){
     const tb = $('#rows');
     if (!rows.length){
@@ -247,7 +247,7 @@
         '<td class="num">' + nf(r.aer,1) + ' j</td>' +
         '<td class="num">' + nf(r.doMin,2) + '</td>' +
         '<td class="num">' + jam(r.doMinT) + '</td>' +
-        '<td class="num">' + nf(r.soc,0) + '%</td>' +
+        '<td class="num">' + (r.soc == null ? '—' : nf(r.soc,0) + '%') + '</td>' +
         '<td class="num">' + nf(r.fail,1) + ' j</td>' +
         '<td><span class="pill ' + cls + '"><span class="dot"></span>' + label + '</span></td></tr>';
     }).join('');
@@ -287,7 +287,7 @@
     if (!rows.length) return;
     download('hasil-skenario.csv', toCsv(
       ['Skenario','Energi PLTS (kWh)','Aerator aktif (jam)','DO min (mg/L)','Jam DO min','SoC min (%)','Kebutuhan tak terlayani (jam)','Status'],
-      rows.map(r => [r.name, nf(r.pv,2), nf(r.aer,1), nf(r.doMin,2), jam(r.doMinT), nf(r.soc,0), nf(r.fail,1), r.status])));
+      rows.map(r => [r.name, nf(r.pv,2), nf(r.aer,1), nf(r.doMin,2), jam(r.doMinT), r.soc == null ? '' : nf(r.soc,0), nf(r.fail,1), r.status])));
   });
   $('#csv-series').addEventListener('click', () => {
     download('data-24-jam.csv', toCsv(

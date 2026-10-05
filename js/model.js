@@ -57,12 +57,14 @@
     const resp = 0.55 * load;           // konsumsi oksigen ikan + dekomposisi (mg/L/jam)
     const photoPeak = 0.95;             // produksi oksigen fotosintesis puncak (mg/L/jam)
 
+    const hasBattery = p.batteryKwh > 0;
     let soc = 60;
     let doM = 5.5;
     const series = [];
     let pvEnergy = 0, aerHours = 0, curtailed = 0, failHours = 0;
 
     for (let day = 0; day < 2; day++) {
+      const record = day === 1;          // hari pertama hanya pemanasan, tidak dihitung
       for (let i = 0; i < N; i++) {
         const t = i * DT;
         const w = Math.max(0, weatherFactor(t, p.weather));
@@ -84,13 +86,13 @@
         } else {
           toBatt = pv;
         }
-        if (!aerOn && want) failHours += DT;
+        if (record && !aerOn && want) failHours += DT;   // butuh aerasi tetapi tidak ada daya
 
         if (p.batteryKwh > 0) {
           const d = ((toBatt - fromBatt) * DT) / p.batteryKwh * 100;
-          if (soc + d > 100) curtailed += ((soc + d - 100) / 100) * p.batteryKwh;
+          if (record && soc + d > 100) curtailed += ((soc + d - 100) / 100) * p.batteryKwh;
           soc = Math.min(100, Math.max(0, soc + d));
-        } else if (toBatt > 0) {
+        } else if (record && toBatt > 0) {
           curtailed += toBatt * DT;
         }
 
@@ -98,23 +100,23 @@
         const dDo = photo + kNat * (DOSAT - doM) + (aerOn ? kAer * (1 - doM / DOSAT) : 0) - resp;
         doM = Math.max(0, Math.min(DOSAT, doM + dDo * DT));
 
-        if (day === 1) {
+        if (record) {
           pvEnergy += pv * DT;
           if (aerOn) aerHours += DT;
-          series.push({ t, pv, soc, do: doM, aer: aerOn });
+          series.push({ t, pv, soc: hasBattery ? soc : 0, do: doM, aer: aerOn });
         }
       }
     }
 
-    let doMin = Infinity, doMinT = 0, socMin = 100, pvMax = 0;
+    let doMin = Infinity, doMinT = 0, socMin = hasBattery ? 100 : null, pvMax = 0;
     for (const s of series) {
       if (s.do < doMin) { doMin = s.do; doMinT = s.t; }
-      if (s.soc < socMin) socMin = s.soc;
+      if (hasBattery && s.soc < socMin) socMin = s.soc;
       if (s.pv > pvMax) pvMax = s.pv;
     }
 
     return {
-      series, pvEnergy, aerHours, doMin, doMinT, socMin, pvMax, curtailed, failHours,
+      series, hasBattery, pvEnergy, aerHours, doMin, doMinT, socMin, pvMax, curtailed, failHours,
       status: doMin >= 4.5 ? 'aman' : doMin >= 3 ? 'waspada' : 'kritis',
       capacityFactor: p.kwp > 0 ? (pvEnergy / (p.kwp * 24)) * 100 : 0,
     };

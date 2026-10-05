@@ -66,3 +66,17 @@ test('perbaikan rancangan: baterai & panel lebih besar memulihkan skenario 4', (
   const r = run({ ...SCENARIOS[4].p, batteryKwh: 15, kwp: 4 });
   assert.ok(r.doMin > scenario(4).doMin);
 });
+
+test('kebutuhan tak terlayani hanya dihitung untuk 24 jam yang ditampilkan', () => {
+  // Tanpa aerator, setiap langkah saat DO di bawah ambang adalah kebutuhan tak terlayani.
+  const r = scenario(1);
+  const jamDiBawahAmbang = r.series.filter((s) => s.do < DEFAULTS.doThreshold).length / 6;
+  assert.ok(r.failHours <= 24);
+  assert.ok(Math.abs(r.failHours - jamDiBawahAmbang) <= 1 / 6 + 1e-9, `${r.failHours} vs ${jamDiBawahAmbang}`);
+});
+
+test('tanpa baterai, isi baterai dilaporkan kosong (bukan nilai awal 60%)', () => {
+  const r = scenario(2);
+  assert.equal(r.hasBattery, false);
+  assert.equal(r.socMin, null);
+});
