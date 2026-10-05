@@ -54,31 +54,6 @@ Terapung Cirata, dan keempat skenario menghasilkan kesimpulan yang diharapkan.
 
 ---
 
-## Cara hosting (gratis)
-
-Karena proyek ini hanya berisi file statis, hosting cukup dengan mengunggah folder ini.
-
-### A. GitHub Pages
-
-1. Buat repositori baru di GitHub, misalnya `simulator-klaster-hibrida`.
-2. Unggah semua isi folder ini (atau `git push`).
-3. Buka **Settings → Pages**, pilih **Deploy from a branch**, branch `main`, folder `/ (root)`, lalu **Save**.
-4. Setelah ±1 menit, situs tersedia di `https://<username>.github.io/simulator-klaster-hibrida/`.
-
-### B. Netlify Drop (tanpa akun Git)
-
-1. Buka <https://app.netlify.com/drop>.
-2. Seret folder `simulator-klaster-hibrida` ke halaman tersebut.
-3. Netlify langsung memberikan tautan publik.
-
-### C. Vercel
-
-1. Impor repositori GitHub di <https://vercel.com/new>.
-2. Framework preset: **Other**. Build command dan output directory dikosongkan.
-3. Klik **Deploy**.
-
----
-
 ## Model dan asumsi
 
 | Komponen | Rumus / asumsi |
