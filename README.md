@@ -73,6 +73,84 @@ Pembuktian fisik itu dilakukan lewat percobaan efek fotolistrik (PhET) pada LKM-
 
 ---
 
+## Cara program menghitung
+
+Program membagi satu hari menjadi **144 langkah @10 menit**. Di setiap langkah, program menghitung empat hal
+berurutan, lalu maju ke langkah berikutnya. Simulasi dijalankan 2 hari dan yang ditampilkan hari kedua, supaya
+kondisi awal (baterai 60%, oksigen 5,5 mg/L) tidak memengaruhi hasil.
+
+### 1. Daya panel
+
+$$P = \text{kWp} \times \sin\left(\pi \cdot \frac{t-6}{12}\right) \times \text{faktor cuaca} \times 0{,}5$$
+
+Angka 0,5 adalah faktor rugi sistem dan atmosfer.
+
+**Contoh** (cuaca cerah, panel 2 kWp):
+
+- pukul 12.00 → 2 × 1 × 1 × 0,5 = **1,00 kW**
+- pukul 09.00 → 2 × 0,71 × 1 × 0,5 = **0,71 kW**
+- malam hari → **0 kW**
+
+### 2. Keputusan aerator (aturan kendali)
+
+Aerator dibutuhkan jika oksigen **< 5 mg/L**. Sumber dayanya dipilih berurutan:
+
+1. **Panel**, jika dayanya ≥ 0,75 kW;
+2. kalau tidak, **baterai**, jika isinya > 20% (atau > 10% saat darurat, yaitu oksigen < 4 mg/L);
+3. kalau keduanya tidak bisa → aerator mati dan langkah itu dicatat sebagai **tak terlayani**.
+
+### 3. Isi baterai
+
+$$\Delta SoC = \frac{(\text{daya masuk} - \text{daya keluar}) \times \tfrac{1}{6}\ \text{jam}}{\text{kapasitas baterai}} \times 100\%$$
+
+**Contoh:** aerator 0,75 kW dari baterai 7,5 kWh selama 10 menit → 0,75 × ⅙ ÷ 7,5 × 100 = **−1,67% per langkah**.
+
+### 4. Oksigen terlarut
+
+Perubahan oksigen adalah penjumlahan empat proses:
+
+| Proses | Rumus | Nilai contoh |
+|---|---|---|
+| Fotosintesis plankton (+) | `0,95 × sin(...) × cuaca` | 0 pada malam, 0,95 pada siang cerah |
+| Penyerapan alami dari udara (+) | `0,07 × (8,5 − DO)` | DO 5 → +0,25 |
+| Aerator (+), jika menyala | `2,2 × (1 − DO/8,5)` | DO 5 → +0,91 |
+| Respirasi ikan & pembusukan (−) | `0,55 × (keramba/40)` | 40 petak → −0,55 |
+
+Satuannya mg/L per jam; hasil penjumlahan dikali ⅙ jam untuk mendapatkan perubahan per langkah.
+
+### Contoh satu langkah nyata (skenario 3, pukul 02.00)
+
+Oksigen 4,96 mg/L → di bawah ambang 5 → aerator menyala dari baterai.
+
+| Proses | Perhitungan | Hasil (mg/L/jam) |
+|---|---|---|
+| Fotosintesis | malam | 0 |
+| Alami | 0,07 × (8,5 − 4,96) | +0,25 |
+| Aerator | 2,2 × (1 − 4,96/8,5) | +0,92 |
+| Respirasi | — | −0,55 |
+| **Total** | | **+0,61** |
+
++0,61 mg/L/jam × ⅙ jam = **+0,10** → oksigen naik menjadi **5,06 mg/L**.
+
+Pada langkah berikutnya oksigen sudah 5,06, di atas ambang, sehingga aerator mati. Perubahannya menjadi
+0,24 − 0,55 = −0,31 mg/L/jam → turun 0,05 per langkah → 5,01 → 4,96 → aerator menyala lagi.
+
+Jadi, aerator **berkedip**: nyala 10 menit, mati 20 menit, dan menahan oksigen di sekitar 5 mg/L sepanjang malam.
+Inilah sebabnya total aerator aktif hanya 2,2 jam dan oksigen terendahnya 4,96 mg/L.
+
+### Asal angka tiap kolom
+
+| Kolom | Cara dihitung |
+|---|---|
+| Energi PLTS | jumlah (daya × ⅙ jam) dari 144 langkah |
+| Aerator | jumlah langkah aerator menyala × 10 menit |
+| DO min & jamnya | nilai oksigen terkecil dari 144 langkah |
+| SoC min | isi baterai terkecil |
+| Tak terlayani | jumlah langkah “aerator dibutuhkan tetapi tidak ada daya” × 10 menit |
+| Status | DO min ≥ 4,5 → Aman; 3–4,5 → Waspada; < 3 → Kritis |
+
+---
+
 ## Hasil empat skenario (parameter awal)
 
 | Skenario | Energi PLTS | Aerator aktif | DO terendah | Status |
