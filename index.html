@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Simulator Klaster Hibrida</title>
+  <meta name="description" content="Simulator 24 jam PLTS terapung, baterai, dan aerator keramba — prototipe LKM-3 Kelompok 8.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='12' r='7' fill='%23C9801A'/%3E%3Crect x='4' y='22' width='24' height='6' rx='3' fill='%230E6E7C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">LKM-3 · Praktik Rekayasa · MSTR Energi</span>
+    <h1>Simulator Klaster Energi Hibrida</h1>
+    <p class="lede">Prototipe perangkat lunak dari solusi LKM-1: PLTS terapung menyalakan aerator di zona keramba, dengan baterai sebagai penyangga malam hari. Atur parameternya, lalu amati daya surya, isi baterai, dan kadar oksigen air sepanjang 24 jam.</p>
+    <span class="credit">Kelompok 8 · Ilustrasi waduk tidak berskala · Model disetarakan dengan PLTS Terapung Cirata</span>
+  </header>
+
+  <div class="stage">
+    <svg viewBox="0 0 960 330" role="img" aria-label="Potongan waduk: panel surya terapung, baterai, aerator, dan keramba">
+      <defs>
+        <linearGradient id="gwater" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="var(--water)" stop-opacity=".55"/>
+          <stop offset="1" stop-color="var(--water)"/>
+        </linearGradient>
+      </defs>
+      <rect id="sky" x="0" y="0" width="960" height="150" fill="var(--sky-day)"/>
+      <g id="sun"><circle cx="0" cy="0" r="17" fill="var(--sun)"/></g>
+      <g id="moon" opacity="0"><circle cx="150" cy="46" r="12" fill="#C9D6DA"/><circle cx="144" cy="42" r="11" fill="var(--sky-night)"/></g>
+      <rect x="0" y="150" width="960" height="180" fill="url(#gwater)"/>
+
+      <!-- panel satu arah -->
+      <g id="arr-single">
+        <rect x="120" y="134" width="300" height="14" rx="7" fill="var(--float)"/>
+        <g fill="var(--accent)">
+          <polygon points="136,134 184,100 184,112 136,146"/>
+          <polygon points="206,134 254,100 254,112 206,146"/>
+          <polygon points="276,134 324,100 324,112 276,146"/>
+          <polygon points="346,134 394,100 394,112 346,146"/>
+        </g>
+      </g>
+      <!-- panel timur–barat -->
+      <g id="arr-ew" opacity="0">
+        <rect x="120" y="134" width="300" height="14" rx="7" fill="var(--float)"/>
+        <g>
+          <polygon points="136,134 160,104 160,116 136,146" fill="var(--sun)"/>
+          <polygon points="160,104 184,134 184,146 160,116" fill="var(--accent)"/>
+          <polygon points="206,134 230,104 230,116 206,146" fill="var(--sun)"/>
+          <polygon points="230,104 254,134 254,146 230,116" fill="var(--accent)"/>
+          <polygon points="276,134 300,104 300,116 276,146" fill="var(--sun)"/>
+          <polygon points="300,104 324,134 324,146 300,116" fill="var(--accent)"/>
+          <polygon points="346,134 370,104 370,116 346,146" fill="var(--sun)"/>
+          <polygon points="370,104 394,134 394,146 370,116" fill="var(--accent)"/>
+        </g>
+      </g>
+      <text x="270" y="92" text-anchor="middle" font-size="13" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)" id="lbl-array">PLTS terapung</text>
+
+      <!-- kabel -->
+      <path d="M420 141 L470 141" stroke="var(--ink-2)" stroke-width="2.5" fill="none"/>
+      <!-- baterai -->
+      <rect x="470" y="110" width="84" height="40" rx="7" fill="var(--surface)" stroke="var(--ink-2)" stroke-width="2.5"/>
+      <rect id="batt-fill" x="476" y="116" width="60" height="28" rx="4" fill="var(--batt)"/>
+      <text id="batt-pct" x="512" y="135" text-anchor="middle" font-size="13" font-family="IBM Plex Mono,monospace" fill="var(--ink)">60%</text>
+      <text x="512" y="100" text-anchor="middle" font-size="13" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">baterai</text>
+      <path id="wire" d="M554 130 C 600 130, 620 128, 660 128" stroke="var(--ink-2)" stroke-width="2.5" fill="none" stroke-dasharray="7 5" opacity=".35"/>
+
+      <!-- aerator -->
+      <rect x="640" y="136" width="110" height="13" rx="6" fill="var(--float)"/>
+      <g id="wheel" transform="translate(695,126)">
+        <circle r="26" fill="var(--surface)" stroke="var(--sun)" stroke-width="3.5"/>
+        <g stroke="var(--sun)" stroke-width="3.5" stroke-linecap="round">
+          <line x1="0" y1="-10" x2="0" y2="-25"/><line x1="0" y1="10" x2="0" y2="25"/>
+          <line x1="-10" y1="0" x2="-25" y2="0"/><line x1="10" y1="0" x2="25" y2="0"/>
+          <line x1="-7" y1="-7" x2="-18" y2="-18"/><line x1="7" y1="7" x2="18" y2="18"/>
+          <line x1="-7" y1="7" x2="-18" y2="18"/><line x1="7" y1="-7" x2="18" y2="-18"/>
+        </g>
+      </g>
+      <text x="695" y="92" text-anchor="middle" font-size="13" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">aerator</text>
+      <g id="bubbles" opacity="0" fill="#FFFFFF" opacity-anim="1">
+        <circle cx="660" cy="200" r="5"/><circle cx="684" cy="178" r="4"/><circle cx="706" cy="206" r="6"/>
+        <circle cx="730" cy="186" r="4"/><circle cx="748" cy="212" r="5"/><circle cx="640" cy="176" r="4"/>
+      </g>
+
+      <!-- keramba -->
+      <g id="cages">
+        <rect x="596" y="172" width="120" height="12" rx="5" fill="#D8A06A"/>
+        <path d="M596 184 L610 290 L702 290 L716 184 Z" fill="#FFFFFF" fill-opacity=".14" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="2"/>
+        <rect x="770" y="172" width="120" height="12" rx="5" fill="#D8A06A"/>
+        <path d="M770 184 L784 290 L876 290 L890 184 Z" fill="#FFFFFF" fill-opacity=".14" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="2"/>
+        <g id="fish" fill="var(--sun)">
+          <g><ellipse cx="630" cy="214" rx="13" ry="6"/><polygon points="641,214 652,207 652,221"/></g>
+          <g><ellipse cx="676" cy="246" rx="13" ry="6"/><polygon points="687,246 698,239 698,253"/></g>
+          <g><ellipse cx="648" cy="272" rx="13" ry="6"/><polygon points="659,272 670,265 670,279"/></g>
+          <g><ellipse cx="806" cy="214" rx="13" ry="6"/><polygon points="817,214 828,207 828,221"/></g>
+          <g><ellipse cx="850" cy="248" rx="13" ry="6"/><polygon points="861,248 872,241 872,255"/></g>
+          <g><ellipse cx="820" cy="274" rx="13" ry="6"/><polygon points="831,274 842,267 842,281"/></g>
+        </g>
+      </g>
+      <text x="743" y="308" text-anchor="middle" font-size="13" font-family="IBM Plex Sans,sans-serif" fill="#FFFFFF" fill-opacity=".85">keramba jaring apung</text>
+
+      <!-- papan nilai -->
+      <g id="readout">
+        <rect x="24" y="172" width="206" height="106" rx="10" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5" opacity=".95"/>
+        <text x="40" y="196" font-size="12" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">Daya PLTS</text>
+        <text id="r-pv" x="214" y="196" text-anchor="end" font-size="13" font-family="IBM Plex Mono,monospace" fill="var(--sun)">0,00 kW</text>
+        <text x="40" y="222" font-size="12" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">Isi baterai</text>
+        <text id="r-soc" x="214" y="222" text-anchor="end" font-size="13" font-family="IBM Plex Mono,monospace" fill="var(--batt)">60%</text>
+        <text x="40" y="248" font-size="12" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">Oksigen air</text>
+        <text id="r-do" x="214" y="248" text-anchor="end" font-size="13" font-family="IBM Plex Mono,monospace" fill="var(--oxy)">5,5 mg/L</text>
+        <text x="40" y="270" font-size="12" font-family="IBM Plex Sans,sans-serif" fill="var(--ink-2)">Aerator</text>
+        <text id="r-aer" x="214" y="270" text-anchor="end" font-size="13" font-family="IBM Plex Mono,monospace" fill="var(--ink-3)">mati</text>
+      </g>
+    </svg>
+    <div class="transport">
+      <button id="play" class="primary" type="button">Jalankan</button>
+      <span class="clock" id="clock">00.00</span>
+      <input id="scrub" type="range" min="0" max="143" step="1" value="0" aria-label="Waktu simulasi">
+    </div>
+  </div>
+
+  <div class="cols">
+    <aside>
+      <div class="panel">
+        <h2>Parameter</h2>
+        <p class="muted">Nilai awal mewakili satu klaster kecil pelayan ±40 petak keramba.</p>
+
+        <div class="field">
+          <label for="kwp">Kapasitas panel <span class="val"><span id="kwp-v">2,0</span> kWp</span></label>
+          <input id="kwp" type="range" min="0.5" max="10" step="0.5" value="2">
+        </div>
+
+        <div class="field">
+          <label>Orientasi panel</label>
+          <div class="seg" id="orient" role="group" aria-label="Orientasi panel">
+            <button type="button" data-v="single" aria-pressed="true">Satu arah</button>
+            <button type="button" data-v="ew" aria-pressed="false">Timur–barat</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="batt">Kapasitas baterai <span class="val"><span id="batt-v">7,5</span> kWh</span></label>
+          <input id="batt" type="range" min="0" max="20" step="0.5" value="7.5">
+        </div>
+
+        <div class="field">
+          <label for="aer">Daya aerator <span class="val"><span id="aer-v">0,75</span> kW</span></label>
+          <input id="aer" type="range" min="0" max="2" step="0.25" value="0.75">
+        </div>
+
+        <div class="field">
+          <label for="thr">Ambang penyalaan oksigen <span class="val"><span id="thr-v">5,0</span> mg/L</span></label>
+          <input id="thr" type="range" min="4" max="7" step="0.5" value="5">
+        </div>
+
+        <div class="field">
+          <label>Cuaca</label>
+          <div class="seg" id="weather" role="group" aria-label="Cuaca">
+            <button type="button" data-v="cerah" aria-pressed="true">Cerah</button>
+            <button type="button" data-v="berawan" aria-pressed="false">Berawan</button>
+            <button type="button" data-v="hujan" aria-pressed="false">Hujan</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="ker">Jumlah keramba <span class="val"><span id="ker-v">40</span> petak</span></label>
+          <input id="ker" type="range" min="10" max="100" step="5" value="40">
+        </div>
+
+        <div class="btnrow">
+          <button id="reset" type="button">Kembalikan nilai awal</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Skenario uji</h2>
+        <p class="muted">Tekan satu tombol, hasilnya langsung tercatat di tabel.</p>
+        <div class="btnrow">
+          <button type="button" data-sc="1">1 · Tanpa aerator</button>
+          <button type="button" data-sc="2">2 · Aerator tanpa baterai</button>
+          <button type="button" data-sc="3">3 · Sistem usulan</button>
+          <button type="button" data-sc="4">4 · Berawan &amp; keramba padat</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="tiles">
+        <div class="tile"><div class="k">Energi PLTS sehari</div><div class="v" id="t-pv">—</div><div class="u">kWh</div></div>
+        <div class="tile"><div class="k">Aerator aktif</div><div class="v" id="t-aer">—</div><div class="u">jam</div></div>
+        <div class="tile"><div class="k">Oksigen terendah</div><div class="v" id="t-do">—</div><div class="u" id="t-do-u">mg/L</div></div>
+        <div class="tile"><div class="k">Isi baterai terendah</div><div class="v" id="t-soc">—</div><div class="u">%</div></div>
+        <div class="tile"><div class="k">Status ikan</div><div class="v" style="font-size:1rem;margin-top:.45rem"><span id="t-status" class="pill ok"><span class="dot"></span>—</span></div><div class="u" id="t-fail">&nbsp;</div></div>
+      </div>
+
+      <div class="chart" id="c-pv">
+        <h3>Daya PLTS</h3>
+        <div class="sub">kW sepanjang hari — arahkan kursor untuk memindai waktu</div>
+      </div>
+      <div class="chart" id="c-soc">
+        <h3>Isi baterai</h3>
+        <div class="sub">persen; garis putus-putus = batas pemakaian aman 20%</div>
+      </div>
+      <div class="chart" id="c-do">
+        <h3>Oksigen terlarut di keramba</h3>
+        <div class="sub">mg/L; pita merah = zona berbahaya bagi ikan (&lt; 4 mg/L)</div>
+      </div>
+
+      <section class="section">
+        <h2>Tabel hasil pengujian</h2>
+        <p class="muted">Isi kolom “Mari menguji” pada LKM-3 dengan tabel ini.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th>Skenario</th><th>Energi PLTS</th><th>Aerator</th><th>DO min</th><th>Jam DO&nbsp;min</th><th>SoC min</th><th>Kebutuhan tak terlayani</th><th>Status</th>
+            </tr></thead>
+            <tbody id="rows"><tr><td colspan="8" class="empty">Belum ada data. Tekan salah satu tombol skenario, atau atur parameter lalu tekan “Catat hasil”.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="btnrow">
+          <button id="record" class="primary" type="button">Catat hasil saat ini</button>
+          <button id="clear" type="button">Kosongkan tabel</button>
+          <button id="csv-rows" type="button">Unduh tabel (CSV)</button>
+          <button id="csv-series" type="button">Unduh data 24 jam (CSV)</button>
+        </div>
+      </section>
+
+      <details>
+        <summary>Model, asumsi, dan validasi</summary>
+        <ul>
+          <li><strong>Daya panel:</strong> <code>P = kWp × bentuk(t) × faktor cuaca × 0,5</code>. Angka 0,5 adalah derating sistem dan atmosfer. Matahari dimodelkan terbit 06.00 dan terbenam 18.00.</li>
+          <li><strong>Orientasi timur–barat:</strong> dua larik digeser ±0,55 radian terhadap lintasan matahari. Puncaknya lebih rendah, bahunya lebih lebar, dan energi hariannya turun sekitar 7% karena sebagian potensi pagi/sore jatuh di luar jam matahari.</li>
+          <li><strong>Baterai:</strong> <code>SoC(t+Δ) = SoC + (P_surplus − P_defisit)·Δ/E_baterai</code>, dibatasi 0–100%, dengan batas pemakaian 20% (10% saat darurat DO &lt; 4 mg/L).</li>
+          <li><strong>Oksigen terlarut:</strong> <code>dDO/dt = fotosintesis(t) + k_alam·(DO_jenuh − DO) + k_aerator·(1 − DO/DO_jenuh) − respirasi</code>, dengan DO jenuh 8,5 mg/L. Respirasi sebanding dengan jumlah keramba; fotosintesis mengikuti cahaya, sehingga DO jatuh pada dini hari.</li>
+          <li><strong>Kendali:</strong> aerator menyala bila DO turun di bawah ambang, memakai daya panel lebih dulu, lalu baterai. Bila keduanya tidak cukup, kebutuhan itu dicatat sebagai “tak terlayani”.</li>
+          <li><strong>Langkah waktu</strong> 10 menit, disimulasikan dua hari dan yang ditampilkan hari kedua agar siklusnya sudah mantap.</li>
+          <li><strong>Validasi:</strong> pada cuaca cerah model menghasilkan faktor kapasitas <span id="cf-val" class="mono">—</span>, sedangkan PLTS Terapung Cirata (192 MWp, 245 GWh/tahun) berada di sekitar 14,6%. Selisih yang kecil menunjukkan skala model masuk akal.</li>
+          <li><strong>Batas model:</strong> simulasi ini menghitung perilaku sistem, bukan membuktikan konversi cahaya menjadi listrik — pembuktian itu sudah dilakukan lewat percobaan efek fotolistrik pada LKM-2.</li>
+        </ul>
+      </details>
+    </main>
+  </div>
+  <footer class="footer">Kelompok 8 · LKM-3 MSTR Energi · Simulator dijalankan sepenuhnya di peramban, tanpa server data.</footer>
+</div>
+
+<script src="js/model.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
